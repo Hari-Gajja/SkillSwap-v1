@@ -104,23 +104,83 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
+const getPublicIdFromUrl = (url) => {
+  try {
+    const parts = url.split('/');
+    const filename = parts[parts.length - 1];
+    return filename.split('.')[0];
+  } catch (error) {
+    console.error("Error extracting public ID:", error);
+    return null;
+  }
+};
+
 export const updateProfile = async (req, res) => {
   try {
-    const { profilePic } = req.body;
+    const { profilePic, removeProfilePic, deleteCertificateId, certificates } = req.body;
     const userId = req.user._id;
+    const user = await User.findById(userId);
 
-    if (!profilePic) {
-      return res.status(400).json({ message: "Profile pic is required" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic);
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      { profilePic: uploadResponse.secure_url },
-      { new: true }
-    );
+    // Handle profile picture operations
+    if (removeProfilePic) {
+      if (user.profilePic) {
+        const publicId = getPublicIdFromUrl(user.profilePic);
+        if (publicId) {
+          await cloudinary.uploader.destroy(publicId);
+        }
+        user.profilePic = "";
+      }
+    } else if (profilePic) {
+      // Delete old profile pic if exists
+      if (user.profilePic) {
+        const publicId = getPublicIdFromUrl(user.profilePic);
+        if (publicId) {
+          await cloudinary.uploader.destroy(publicId);
+        }
+      }
+      const uploadResponse = await cloudinary.uploader.upload(profilePic);
+      user.profilePic = uploadResponse.secure_url;
+    }
 
-    res.status(200).json(updatedUser);
+    // Handle certificate deletion
+    if (deleteCertificateId) {
+      const certificate = user.certificates.find(
+        cert => cert._id.toString() === deleteCertificateId
+      );
+      if (certificate) {
+        const publicId = getPublicIdFromUrl(certificate.fileUrl);
+        if (publicId) {
+          await cloudinary.uploader.destroy(publicId);
+        }
+        user.certificates = user.certificates.filter(
+          cert => cert._id.toString() !== deleteCertificateId
+        );
+      }
+    }
+
+    // Handle certificate updates
+    if (certificates) {
+      // If it's a new certificate being added
+      if (certificates.length > user.certificates.length) {
+        const newCertificate = certificates[certificates.length - 1];
+        if (newCertificate.fileUrl.startsWith('data:')) {
+          // Upload new certificate to cloudinary
+          const uploadResponse = await cloudinary.uploader.upload(newCertificate.fileUrl);
+          newCertificate.fileUrl = uploadResponse.secure_url;
+          user.certificates.push(newCertificate);
+        }
+      } else {
+        // If it's a complete update of certificates array
+        user.certificates = certificates;
+      }
+    }
+
+    await user.save();
+    res.status(200).json(user);
   } catch (error) {
     console.log("error in update profile:", error);
     res.status(500).json({ message: "Internal server error" });

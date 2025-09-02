@@ -5,14 +5,22 @@ import SidebarSkeleton from "./skeletons/SidebarSkeleton";
 import { Users } from "lucide-react";
 
 const Sidebar = () => {
-  const { getUsers, connectedUsers, selectedUser, setSelectedUser, isUsersLoading } = useChatStore();
+  const { 
+    getUsers, 
+    connectedUsers, 
+    selectedUser, 
+    setSelectedUser, 
+    isUsersLoading,
+    subscribeToConnectionUpdates 
+  } = useChatStore();
 
   const { onlineUsers } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
   useEffect(() => {
     getUsers();
-  }, [getUsers]);
+    subscribeToConnectionUpdates();
+  }, [getUsers, subscribeToConnectionUpdates]);
 
   const filteredUsers = showOnlineOnly
     ? connectedUsers.filter((user) => onlineUsers.includes(user._id))
@@ -67,9 +75,9 @@ const Sidebar = () => {
               )}
             </div>
 
-            {/* User info - only visible on larger screens */}
-            <div className="hidden lg:block text-left min-w-0">
-              <div className="font-medium truncate">{user.fullName}</div>
+            {/* User info - visible on all screens */}
+            <div className="flex-1 text-left min-w-0">
+              <div className="font-medium truncate">{user.name}</div>
               <div className="text-sm text-zinc-400">
                 {onlineUsers.includes(user._id) ? "Online" : "Offline"}
               </div>

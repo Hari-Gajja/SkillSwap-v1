@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
+import ConnectionRequest from "../models/connectionRequest.model.js";
 
 import cloudinary from "../lib/cloudinary.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
@@ -7,9 +8,11 @@ import { getReceiverSocketId, io } from "../lib/socket.js";
 export const getUsersForSidebar = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
-    const filteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("-password");
+    
+    // Get users that are connected through accepted connection requests
+    const connectedUsers = await ConnectionRequest.findConnectedUsers(loggedInUserId);
 
-    res.status(200).json(filteredUsers);
+    res.status(200).json(connectedUsers);
   } catch (error) {
     console.error("Error in getUsersForSidebar: ", error.message);
     res.status(500).json({ error: "Internal server error" });
@@ -40,6 +43,18 @@ export const sendMessage = async (req, res) => {
     const { text, image } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
+
+    // Check if users are connected
+    const isConnected = await ConnectionRequest.exists({
+      $or: [
+        { fromUser: senderId, toUser: receiverId, status: "accepted" },
+        { fromUser: receiverId, toUser: senderId, status: "accepted" }
+      ]
+    });
+
+    if (!isConnected) {
+      return res.status(403).json({ message: "You can only send messages to connected users" });
+    }
 
     let imageUrl;
     if (image) {

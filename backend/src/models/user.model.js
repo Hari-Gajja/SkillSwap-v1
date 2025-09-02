@@ -46,8 +46,14 @@ const userSchema = new mongoose.Schema(
       }
     }],
     certificates: [{
-      title: String,
-      fileUrl: String,
+      title: {
+        type: String,
+        required: true
+      },
+      fileUrl: {
+        type: String,
+        required: true
+      },
       uploadDate: {
         type: Date,
         default: Date.now

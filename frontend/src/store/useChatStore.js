@@ -70,6 +70,15 @@ export const useChatStore = create((set, get) => ({
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
+    socket.off("refreshChatList");
+  },
+
+  subscribeToConnectionUpdates: () => {
+    const socket = useAuthStore.getState().socket;
+    socket.on("refreshChatList", () => {
+      // Refresh the connected users list when a connection is accepted
+      get().getUsers();
+    });
   },
 
   setSelectedUser: (selectedUser) => set({ selectedUser }),

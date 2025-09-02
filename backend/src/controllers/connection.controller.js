@@ -79,6 +79,29 @@ export const respondToConnectionRequest = async (req, res) => {
     connectionRequest.status = accept ? "accepted" : "declined";
     await connectionRequest.save();
 
+    // Get socket IDs for both users
+    const requestSenderSocketId = getReceiverSocketId(connectionRequest.fromUser._id);
+    const requestReceiverSocketId = getReceiverSocketId(connectionRequest.toUser._id);
+
+    // Send notification to the request sender about the response
+    if (requestSenderSocketId) {
+      io.to(requestSenderSocketId).emit("connectionRequestResponse", {
+        status: accept ? "accepted" : "declined",
+        user: connectionRequest.toUser,
+        message: `${connectionRequest.toUser.name} has ${accept ? 'accepted' : 'declined'} your connection request`
+      });
+    }
+
+    if (accept) {
+      // Tell both users to refresh their chat sidebar
+      if (requestSenderSocketId) {
+        io.to(requestSenderSocketId).emit("refreshChatList");
+      }
+      if (requestReceiverSocketId) {
+        io.to(requestReceiverSocketId).emit("refreshChatList");
+      }
+    }
+
     // Emit socket event to the sender
     const senderSocketId = getReceiverSocketId(connectionRequest.fromUser._id);
     if (senderSocketId) {

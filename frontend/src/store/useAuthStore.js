@@ -101,6 +101,18 @@ export const useAuthStore = create((set, get) => ({
       set({ onlineUsers: userIds });
     });
 
+    // Handle connection request responses
+    socket.on("connectionRequestResponse", (data) => {
+      const { message, status } = data;
+      
+      // Show a toast notification with the response
+      if (status === "accepted") {
+        toast.success(message);
+      } else {
+        toast.error(message);
+      }
+    });
+
     // Handle incoming connection requests
     socket.on("newConnectionRequest", (request) => {
       const { addConnectionRequest } = useNotificationStore.getState();
@@ -135,6 +147,11 @@ export const useAuthStore = create((set, get) => ({
     });
   },
   disconnectSocket: () => {
-    if (get().socket?.connected) get().socket.disconnect();
+    const socket = get().socket;
+    if (socket) {
+      socket.off("connectionRequestResponse");
+      socket.close();
+      set({ socket: null });
+    }
   },
 }));

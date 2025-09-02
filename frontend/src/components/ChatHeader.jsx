@@ -19,10 +19,16 @@ const ChatHeader = () => {
 
           {/* User info */}
           <div>
-            <h3 className="font-medium">{selectedUser.fullName}</h3>
-            <p className="text-sm text-base-content/70">
-              {onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
-            </p>
+            <h3 className="font-medium">{selectedUser.name}</h3>
+            <div className="flex items-center gap-2 text-sm text-base-content/70">
+              <span>{onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}</span>
+              {selectedUser.email && (
+                <>
+                  <span>•</span>
+                  <span>{selectedUser.email}</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
