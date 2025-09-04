@@ -7,6 +7,8 @@ import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
 import PeersPage from "./pages/PeersPage";
 import QuizPage from "./pages/QuizPage";
+import SessionsPage from "./pages/SessionsPage";
+import VideoCallPage from "./pages/VideoCallPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
 
@@ -18,6 +20,7 @@ import { useEffect } from "react";
 import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import PendingRequests from "./components/PendingRequests";
+import EnvironmentTest from "./components/EnvironmentTest";
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
@@ -41,6 +44,9 @@ const App = () => {
   return (
     <div data-theme={theme}>
       <Navbar />
+      
+      {/* Environment Test Component - Only show in development */}
+      {import.meta.env.DEV && <EnvironmentTest />}
 
       <Routes>
         <Route path="/" element={authUser ? <ChatPage /> : <Navigate to="/login" />} />
@@ -50,6 +56,8 @@ const App = () => {
         <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
         <Route path="/peers" element={authUser ? <PeersPage /> : <Navigate to="/login" />} />
         <Route path="/quiz" element={authUser ? <QuizPage /> : <Navigate to="/login" />} />
+        <Route path="/sessions" element={authUser ? <SessionsPage /> : <Navigate to="/login" />} />
+        <Route path="/video-call/:roomId" element={authUser ? <VideoCallPage /> : <Navigate to="/login" />} />
         <Route path="/profile/:userId" element={authUser ? <UserProfilePage /> : <Navigate to="/login" />} />
         <Route path="/notifications" element={authUser ? <NotificationsPage /> : <Navigate to="/login" />} />
       </Routes>

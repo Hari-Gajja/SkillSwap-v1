@@ -1,17 +1,36 @@
 import express from "express";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { 
-  createSession,
-  getSessionsByUser,
-  updateSessionStatus,
-  findPeers
+  createTimeSlots,
+  bookSession,
+  getAvailableSessions,
+  getUserSessions,
+  joinVideoCall,
+  endSession,
+  getConnectedTeachers
 } from "../controllers/session.controller.js";
 
 const router = express.Router();
 
-router.post("/create", protectRoute, createSession);
-router.get("/list", protectRoute, getSessionsByUser);
-router.put("/:sessionId/status", protectRoute, updateSessionStatus);
-router.get("/peers", protectRoute, findPeers);
+// Create time slots (for teachers)
+router.post("/create-slots", protectRoute, createTimeSlots);
+
+// Book a session (for students)
+router.post("/:sessionId/book", protectRoute, bookSession);
+
+// Get available sessions for a skill
+router.get("/available", protectRoute, getAvailableSessions);
+
+// Get user's sessions
+router.get("/my-sessions", protectRoute, getUserSessions);
+
+// Join video call
+router.post("/:sessionId/join", protectRoute, joinVideoCall);
+
+// End session
+router.post("/:sessionId/end", protectRoute, endSession);
+
+// Get connected teachers with available sessions
+router.get("/teachers", protectRoute, getConnectedTeachers);
 
 export default router;

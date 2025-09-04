@@ -22,9 +22,9 @@ const Sidebar = () => {
     subscribeToConnectionUpdates();
   }, [getUsers, subscribeToConnectionUpdates]);
 
-  const filteredUsers = showOnlineOnly
-    ? connectedUsers.filter((user) => onlineUsers.includes(user._id))
-    : connectedUsers;
+  const filteredUsers = showOnlineOnly && Array.isArray(connectedUsers)
+    ? connectedUsers.filter((user) => onlineUsers?.includes(user?._id))
+    : Array.isArray(connectedUsers) ? connectedUsers : [];
 
   if (isUsersLoading) return <SidebarSkeleton />;
 

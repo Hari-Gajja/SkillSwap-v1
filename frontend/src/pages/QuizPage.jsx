@@ -33,8 +33,7 @@ const QuizPage = () => {
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.post("/api/quiz/submit", {
-        quizId: quiz._id,
+      const response = await axiosInstance.post(`/quiz/${quiz._id}/submit`, {
         answers,
       });
       setResults(response.data);

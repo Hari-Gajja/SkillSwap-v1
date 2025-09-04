@@ -6,6 +6,6 @@ const router = express.Router();
 
 router.post("/generate", protectRoute, generateQuiz);
 router.get("/:id", protectRoute, getQuizById);
-router.post("/submit", protectRoute, submitQuizAttempt);
+router.post("/:id/submit", protectRoute, submitQuizAttempt);
 
 export default router;

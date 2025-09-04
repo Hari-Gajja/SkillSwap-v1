@@ -4,8 +4,9 @@ import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 import { useNotificationStore } from "./useNotificationStore";
 import { useChatStore } from "./useChatStore";
+import config from "../config/env.js";
 
-const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
+const BASE_URL = config.socketUrl;
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
@@ -120,6 +121,48 @@ export const useAuthStore = create((set, get) => ({
       toast.success(`New connection request from ${request.fromUser.name}`);
     });
 
+    // Handle session invitations
+    socket.on("sessionInvitation", (invitation) => {
+      const { addNotification } = useNotificationStore.getState();
+      addNotification({
+        _id: Date.now().toString(),
+        type: 'session_invitation',
+        user: invitation.teacher,
+        message: invitation.message,
+        timestamp: invitation.timestamp,
+        read: false,
+        sessionData: {
+          skill: invitation.skill,
+          sessions: invitation.sessions
+        }
+      });
+      toast.success(`${invitation.teacher.name} invited you to join ${invitation.skill} sessions!`);
+    });
+
+    // Handle session going live notifications
+    socket.on("sessionGoingLive", (liveSession) => {
+      const { addNotification } = useNotificationStore.getState();
+      addNotification({
+        _id: Date.now().toString(),
+        type: 'session_live',
+        user: liveSession.teacher,
+        message: liveSession.message,
+        timestamp: liveSession.timestamp,
+        read: false,
+        sessionData: {
+          sessionId: liveSession.sessionId,
+          skill: liveSession.skill
+        }
+      });
+      toast.success(`🔴 ${liveSession.skill} session is live! Join now.`, {
+        duration: 8000,
+        style: {
+          background: '#10B981',
+          color: 'white',
+        }
+      });
+    });
+
     // Handle connection request updates
     socket.on("connectionRequestUpdated", (data) => {
       const { addNotification } = useNotificationStore.getState();
@@ -150,6 +193,10 @@ export const useAuthStore = create((set, get) => ({
     const socket = get().socket;
     if (socket) {
       socket.off("connectionRequestResponse");
+      socket.off("newConnectionRequest");
+      socket.off("sessionInvitation");
+      socket.off("sessionGoingLive");
+      socket.off("connectionRequestUpdated");
       socket.close();
       set({ socket: null });
     }

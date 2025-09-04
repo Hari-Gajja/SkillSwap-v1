@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useNotificationStore } from "../store/useNotificationStore";
-import { Bell, LogOut, MessageSquare, Settings, User, Users, BrainCircuit } from "lucide-react";
+import { Bell, LogOut, MessageSquare, Settings, User, Users, BrainCircuit, Video } from "lucide-react";
 
 const Navbar = () => {
   const { logout, authUser } = useAuthStore();
@@ -27,6 +27,10 @@ const Navbar = () => {
                 <Link to="/peers" className="btn btn-sm gap-2">
                   <Users className="size-4" />
                   <span>Find Peers</span>
+                </Link>
+                <Link to="/sessions" className="btn btn-sm gap-2">
+                  <Video className="size-4" />
+                  <span>Sessions</span>
                 </Link>
                 <Link to="/quiz" className="btn btn-sm gap-2">
                   <BrainCircuit className="size-4" />
